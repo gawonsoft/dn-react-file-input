@@ -59,11 +59,18 @@ export function FileInputButton<TFile>({
   uploader,
   defaultValue,
   multiple = true,
+  onUploaded,
   ...props
 }: FileInputComponentProps<TFile>) {
   const controller = useMemo(
-    () => new FileInputController<TFile>({ uploader, defaultValue, multiple }),
-    []
+    () =>
+      new FileInputController<TFile>({
+        uploader,
+        defaultValue,
+        multiple,
+        onUploaded,
+      }),
+    [],
   );
 
   useImperativeHandle(ref, () => controller, []);
