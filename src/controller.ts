@@ -31,6 +31,7 @@ export type FileInputControllerOptions<TFile> = {
   uploader?: FileUploader<TFile>;
   defaultValue?: DefaultValueOf<TFile>[] | DefaultValueOf<TFile>;
   multiple?: boolean;
+  squentialUploads?: boolean;
   onUploaded?: (file: TFile, snapshot: FileSnapshot<TFile>) => void;
 };
 
@@ -74,6 +75,8 @@ export class FileInputController<TFile> {
 
   protected multiple: boolean;
 
+  protected squentialUploads: boolean;
+
   protected onUploaded?: (file: TFile, snapshot: FileSnapshot<TFile>) => void;
 
   constructor({
@@ -81,6 +84,7 @@ export class FileInputController<TFile> {
     defaultValue,
     multiple = true,
     onUploaded,
+    squentialUploads,
   }: FileInputControllerOptions<TFile> = {}) {
     this.multiple = multiple;
 
@@ -106,6 +110,8 @@ export class FileInputController<TFile> {
       })) || [];
 
     this.onUploaded = onUploaded;
+
+    this.squentialUploads = squentialUploads || false;
   }
 
   subscribe(subscriber: () => void) {
@@ -120,54 +126,64 @@ export class FileInputController<TFile> {
   }
 
   async upload(files: File[]): Promise<void> {
-    for (const file of files) {
-      const { type, name, size } = file;
-
-      const { width, height, thumbnail } = await generateSizeMetadata(file);
-
-      const aspectRatio = width && height ? width / height : undefined;
-
-      const uniqueKey = crypto.randomUUID();
-
-      const snapshot1 = {
-        uniqueKey,
-        isLoading: true,
-        size,
-        type,
-        name,
-        width,
-        height,
-        aspectRatio,
-        thumbnail,
-        file: {} as TFile,
-      };
-
-      this.snapshots = this.multiple
-        ? [...this.snapshots, snapshot1]
-        : [snapshot1];
-
-      const uploadedFile = await this.uploader(file);
-
-      const snapshot2 = {
-        uniqueKey,
-        isLoading: false,
-        size,
-        type,
-        name,
-        width,
-        height,
-        aspectRatio,
-        thumbnail,
-        file: uploadedFile,
-      };
-
-      this.snapshots = this.snapshots.map((snapshot) =>
-        snapshot.uniqueKey === uniqueKey ? snapshot2 : snapshot,
-      );
-
-      if (this.onUploaded) {
-        this.onUploaded(uploadedFile, snapshot2);
+    if (this.squentialUploads) {
+      for (const file of files) {
+        await this.uploadForEach(file);
       }
+
+      return;
+    }
+
+    await Promise.all(files.map((file) => this.uploadForEach(file)));
+  }
+
+  async uploadForEach(file: File): Promise<void> {
+    const { type, name, size } = file;
+
+    const { width, height, thumbnail } = await generateSizeMetadata(file);
+
+    const aspectRatio = width && height ? width / height : undefined;
+
+    const uniqueKey = crypto.randomUUID();
+
+    const snapshot1 = {
+      uniqueKey,
+      isLoading: true,
+      size,
+      type,
+      name,
+      width,
+      height,
+      aspectRatio,
+      thumbnail,
+      file: {} as TFile,
+    };
+
+    this.snapshots = this.multiple
+      ? [...this.snapshots, snapshot1]
+      : [snapshot1];
+
+    const uploadedFile = await this.uploader(file);
+
+    const snapshot2 = {
+      uniqueKey,
+      isLoading: false,
+      size,
+      type,
+      name,
+      width,
+      height,
+      aspectRatio,
+      thumbnail,
+      file: uploadedFile,
+    };
+
+    this.snapshots = this.snapshots.map((snapshot) =>
+      snapshot.uniqueKey === uniqueKey ? snapshot2 : snapshot,
+    );
+
+    if (this.onUploaded) {
+      this.onUploaded(uploadedFile, snapshot2);
     }
   }
 
