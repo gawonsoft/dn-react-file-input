@@ -177,6 +177,8 @@ export class FileInputController<TFile> {
 
     snapshot1.isLoading = false;
     snapshot1.file = uploadedFile;
+
+    this.notify();
   }
 
   remove(snapshot: FileSnapshot<TFile>) {
