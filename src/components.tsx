@@ -58,6 +58,7 @@ export function FileInputButton<TFile>({
   onDrop,
   uploader,
   defaultValue,
+  squentialUploads,
   multiple = true,
   onUploaded,
   ...props
@@ -69,6 +70,7 @@ export function FileInputButton<TFile>({
         defaultValue,
         multiple,
         onUploaded,
+        squentialUploads,
       }),
     [],
   );
@@ -199,8 +201,8 @@ export function FileInputSocket<TFile>({
   ...props
 }: Omit<FileInputComponentProps<TFile>, "children"> & {
   children:
-    | React.ReactNode
-    | ((fileSnapshot: FileSnapshot<TFile>) => React.ReactNode);
+  | React.ReactNode
+  | ((fileSnapshot: FileSnapshot<TFile>) => React.ReactNode);
   overlay?: (isDragOver: boolean) => React.ReactNode;
 }) {
   const controllerRef = useRef<FileInputController<TFile>>(null);

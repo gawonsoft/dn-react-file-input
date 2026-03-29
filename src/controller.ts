@@ -126,18 +126,22 @@ export class FileInputController<TFile> {
   }
 
   async upload(files: File[]): Promise<void> {
-    if (this.squentialUploads) {
-      for (const file of files) {
-        await this.uploadForEach(file);
-      }
+    const promises: Promise<void>[] = [];
 
-      return;
+    for (const file of files) {
+      const snapshot = await this.addSnapshot(file);
+
+      if (this.squentialUploads) {
+        await this.uploadForEach(file, snapshot);
+      } else {
+        promises.push(this.uploadForEach(file, snapshot));
+      }
     }
 
-    await Promise.all(files.map((file) => this.uploadForEach(file)));
+    await Promise.all(promises);
   }
 
-  async uploadForEach(file: File): Promise<void> {
+  async addSnapshot(file: File) {
     const { type, name, size } = file;
 
     const { width, height, thumbnail } = await generateSizeMetadata(file);
@@ -163,27 +167,17 @@ export class FileInputController<TFile> {
       ? [...this.snapshots, snapshot1]
       : [snapshot1];
 
+    return snapshot1;
+  }
+
+  async uploadForEach(file: File, snapshot1: FileSnapshot<TFile>): Promise<void> {
     const uploadedFile = await this.uploader(file);
 
-    const snapshot2 = {
-      uniqueKey,
-      isLoading: false,
-      size,
-      type,
-      name,
-      width,
-      height,
-      aspectRatio,
-      thumbnail,
-      file: uploadedFile,
-    };
-
-    this.snapshots = this.snapshots.map((snapshot) =>
-      snapshot.uniqueKey === uniqueKey ? snapshot2 : snapshot,
-    );
+    snapshot1.isLoading = false;
+    snapshot1.file = uploadedFile;
 
     if (this.onUploaded) {
-      this.onUploaded(uploadedFile, snapshot2);
+      this.onUploaded(uploadedFile, snapshot1);
     }
   }
 
