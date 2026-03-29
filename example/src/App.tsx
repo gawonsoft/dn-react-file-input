@@ -23,20 +23,41 @@ export default function App() {
       <div className="preview-list">
         {files.length > 0
           ? files.map((snapshot) => {
-              return (
-                <div key={snapshot.uniqueKey} className="preview-container">
-                  <FilePreview snapshot={snapshot} />
-                  <button
-                    className="preview-remove-button"
-                    onClick={() => {
-                      controllerRef.current?.remove(snapshot);
-                    }}
-                  >
-                    X
-                  </button>
-                </div>
-              );
-            })
+            return (
+              <div key={snapshot.uniqueKey} className="preview-container">
+                {
+                  snapshot.isLoading ? (
+                    <div className="preview-loading">Loading...</div>
+                  ) : (
+                    (() => {
+                      if (snapshot.type?.startsWith("image/")) {
+                        return <img src={snapshot.file.src} alt={snapshot.file.alt} className="preview-image" />;
+                      }
+
+                      if (snapshot.type?.startsWith("video/")) {
+                        return (
+                          <video controls className="preview-video">
+                            <source src={snapshot.file.src} type={snapshot.type} />
+                            Your browser does not support the video tag.
+                          </video>
+                        );
+                      }
+
+                      return <div className="preview-unsupported">Unsupported file type</div>;
+                    })()
+                  )
+                }
+                <button
+                  className="preview-remove-button"
+                  onClick={() => {
+                    controllerRef.current?.remove(snapshot);
+                  }}
+                >
+                  X
+                </button>
+              </div>
+            );
+          })
           : null}
       </div>
       <div className="app">
@@ -52,6 +73,8 @@ export default function App() {
             {
               width: 100,
               height: 100,
+              type: "image/jpeg",
+              name: "placeholder.jpg",
               file: {
                 src: "https://picsum.photos/100/100",
                 alt: "Placeholder Image",
