@@ -32,7 +32,7 @@ export type FileInputControllerOptions<TFile> = {
   defaultValue?: DefaultValueOf<TFile>[] | DefaultValueOf<TFile>;
   multiple?: boolean;
   squentialUploads?: boolean;
-  onUploaded?: (file: TFile, snapshot: FileSnapshot<TFile>) => void;
+  onUploaded?: (files: TFile[]) => void;
 };
 
 export class FileInputController<TFile> {
@@ -77,7 +77,7 @@ export class FileInputController<TFile> {
 
   protected squentialUploads: boolean;
 
-  protected onUploaded?: (file: TFile, snapshot: FileSnapshot<TFile>) => void;
+  protected onUploaded?: (files: TFile[]) => void;
 
   constructor({
     uploader,
@@ -139,6 +139,8 @@ export class FileInputController<TFile> {
     }
 
     await Promise.all(promises);
+
+    this.onUploaded?.(this.uploadedFiles);
   }
 
   async addSnapshot(file: File) {
@@ -175,10 +177,6 @@ export class FileInputController<TFile> {
 
     snapshot1.isLoading = false;
     snapshot1.file = uploadedFile;
-
-    if (this.onUploaded) {
-      this.onUploaded(uploadedFile, snapshot1);
-    }
   }
 
   remove(snapshot: FileSnapshot<TFile>) {

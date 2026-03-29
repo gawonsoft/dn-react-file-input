@@ -2,7 +2,6 @@ import {
   base64Uploader,
   FileInputArea,
   FileInputController,
-  FilePreview,
   useFiles,
   useIsDragOver,
 } from "dn-react-file-input";
