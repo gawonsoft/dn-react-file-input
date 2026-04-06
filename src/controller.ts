@@ -172,11 +172,18 @@ export class FileInputController<TFile> {
     return snapshot1;
   }
 
-  async uploadForEach(file: File, snapshot1: FileSnapshot<TFile>): Promise<void> {
-    const uploadedFile = await this.uploader(file);
+  async uploadForEach(
+    file: File,
+    snapshot1: FileSnapshot<TFile>,
+  ): Promise<void> {
+    try {
+      const uploadedFile = await this.uploader(file);
 
-    snapshot1.isLoading = false;
-    snapshot1.file = uploadedFile;
+      snapshot1.isLoading = false;
+      snapshot1.file = uploadedFile;
+    } catch (error) {
+      this.remove(snapshot1);
+    }
 
     this.notify();
   }
