@@ -105,7 +105,7 @@ export function FileInputButton<TFile>({
         {...props}
         ref={inputRef}
         type="file"
-        style={{ display: "none" }}
+        style={{ display: "none", ...props.style }}
         multiple={multiple}
         onChange={async (e) => {
           const files = e.target.files;
@@ -201,8 +201,8 @@ export function FileInputSocket<TFile>({
   ...props
 }: Omit<FileInputComponentProps<TFile>, "children"> & {
   children:
-  | React.ReactNode
-  | ((fileSnapshot: FileSnapshot<TFile>) => React.ReactNode);
+    | React.ReactNode
+    | ((fileSnapshot: FileSnapshot<TFile>) => React.ReactNode);
   overlay?: (isDragOver: boolean) => React.ReactNode;
 }) {
   const controllerRef = useRef<FileInputController<TFile>>(null);

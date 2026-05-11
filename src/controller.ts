@@ -114,7 +114,7 @@ export class FileInputController<TFile> {
     this.squentialUploads = squentialUploads || false;
   }
 
-  subscribe(subscriber: () => void) {
+  subscribe(subscriber: FileInputSubscriber) {
     this.subscribers.push(subscriber);
 
     return () => {
@@ -172,7 +172,7 @@ export class FileInputController<TFile> {
     return snapshot1;
   }
 
-  async uploadForEach(
+  protected async uploadForEach(
     file: File,
     snapshot1: FileSnapshot<TFile>,
   ): Promise<void> {
@@ -194,7 +194,11 @@ export class FileInputController<TFile> {
     );
   }
 
-  notify() {
+  clear() {
+    this.snapshots = [];
+  }
+
+  protected notify() {
     for (const subscriber of this.subscribers) {
       subscriber();
     }
